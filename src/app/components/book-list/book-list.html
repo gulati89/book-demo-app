@@ -1,7 +1,7 @@
 <div class="container">
   <p><strong>Total books:</strong> {{ store.totalBooks() }}</p>
   <!-- Book Form -->
-  <form [formGroup]="bookForm" (ngSubmit)="addBookFromForm()">
+  <form [formGroup]="bookForm" (ngSubmit)="submitForm()">
     <div>
       <input formControlName="title" placeholder="Enter book title" />
     </div>
@@ -11,7 +11,10 @@
     <div>
       <input type="number" formControlName="year" />
     </div>
-    <button type="submit" [disabled]="bookForm.invalid">Add Book</button>
+    <button class="mt-2 me-2" type="submit" [disabled]="bookForm.invalid">
+      {{ editing ? 'Update Book' : 'Add Book' }}
+    </button>
+    <button type="button" *ngIf="editing" (click)="cancelEdit()">Cancel</button>
   </form>
 
   <ol class="list-group list-group-numbered mt-3">
@@ -23,6 +26,7 @@
         </div>
       </div>
       <span class="badge">
+        <button class="me-2" (click)="editBook(book)">Edit</button>
         <button (click)="removeBook(book.id)">Remove</button>
       </span>
     </li>

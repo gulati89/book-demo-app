@@ -1,4 +1,3 @@
-// src/app/components/books/books.component.ts
 import { Component, inject } from '@angular/core';
 import { BooksStore } from '../../store/books.store';
 import { Book } from '../../models/book.model';
@@ -14,9 +13,12 @@ import { CommonModule } from '@angular/common';
 export class BookListComponent {
   store = inject(BooksStore);
   fb = inject(FormBuilder);
+  editing = false; // flag for edit mode
+
 
   // Reactive form
   bookForm = this.fb.group({
+    id: [''], 
     title: ['', Validators.required],
     author: ['', Validators.required],
     year: [new Date().getFullYear(), [Validators.required, Validators.min(0)]],
@@ -26,22 +28,34 @@ export class BookListComponent {
     this.store.loadDummyBooks(); // preload dummy books
   }
 
-  addBookFromForm() {
+  submitForm() {
     if (this.bookForm.invalid) return;
+    const value = this.bookForm.value as Book;
 
-    const formValue = this.bookForm.value;
-    const newBook: Book = {
-      id: Date.now(),
-      title: formValue.title ?? '',
-      author: formValue.author ?? '',
-      year: Number(formValue.year),
-    };
-
-    this.store.addBook(newBook);
+    if (this.editing) {
+      this.store.updateBook(value);
+      this.editing = false;
+    } else {
+      this.store.addBook({ ...value, id: crypto.randomUUID() });
+    }
     this.bookForm.reset({ year: new Date().getFullYear() }); // reset form
   }
 
-  removeBook(id: number) {
+  editBook(book: Book) {
+    this.editing = true;
+    this.bookForm.patchValue(book);
+  }
+
+  removeBook(id: string) {
     this.store.removeBook(id);
+    if (this.editing && this.bookForm.value.id === id) {
+      this.editing = false;
+      this.bookForm.reset({ year: new Date().getFullYear() });
+    }
+  }
+
+  cancelEdit() {
+    this.editing = false;
+    this.bookForm.reset({ year: new Date().getFullYear() });
   }
 }
